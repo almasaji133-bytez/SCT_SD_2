@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Number Guessing Game</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f1a;
+      color: #e0e0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container { width: 100%; max-width: 480px; }
+
+    h1 { font-size: 1.6rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 0.875rem; color: #8888aa; margin-bottom: 2rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+    .statcard { background: #1a1a2e; border: 1px solid #2a2a45; border-radius: 12px; padding: 12px; text-align: center; }
+    .statnum { font-size: 1.6rem; font-weight: 600; color: #aaaaff; }
+    .statlbl { font-size: 0.7rem; color: #8888aa; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .card { background: #1a1a2e; border: 1px solid #2a2a45; border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+    .diff-group { display: flex; gap: 6px; }
+
+    .diff-btn { padding: 5px 12px; border: 1px solid #2a2a45; border-radius: 8px; background: transparent; color: #8888aa; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+    .diff-btn:hover { border-color: #5555cc; color: #ccccff; }
+    .diff-btn.active { border-color: #5555cc; color: #aaaaff; background: #2a2a55; font-weight: 500; }
+
+    .new-btn { padding: 6px 14px; border: 1px solid #5555cc; border-radius: 8px; background: #2a2a55; color: #aaaaff; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .new-btn:hover { background: #3a3a66; }
+
+    .input-hint { font-size: 0.8rem; color: #8888aa; margin-bottom: 8px; }
+    kbd { display: inline-block; background: #11112a; border: 1px solid #2a2a45; border-radius: 4px; padding: 1px 6px; font-size: 0.75rem; color: #8888aa; font-family: monospace; }
+
+    .input-row { display: flex; gap: 8px; margin-bottom: 0.75rem; }
+    .guess-input { flex: 1; background: #11112a; border: 1px solid #2a2a45; border-radius: 10px; padding: 10px 14px; font-size: 1.4rem; font-weight: 500; color: #ffffff; outline: none; transition: border-color 0.2s; }
+    .guess-input:focus { border-color: #5555cc; }
+    .guess-input::placeholder { color: #44445a; }
+    .guess-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .guess-btn { padding: 10px 20px; background: #2a2a55; border: 1px solid #5555cc; border-radius: 10px; color: #aaaaff; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .guess-btn:hover { background: #3a3a66; }
+    .guess-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #msgbox { font-size: 0.95rem; font-weight: 500; min-height: 22px; margin-bottom: 1rem; transition: color 0.2s; }
+
+    .therm-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .therm-end { font-size: 0.75rem; color: #44445a; min-width: 16px; text-align: center; }
+    .therm-track { flex: 1; height: 8px; background: #11112a; border-radius: 4px; position: relative; overflow: visible; }
+    #thermFill { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, #5577ff, #ff5544); transition: left 0.4s, width 0.4s; }
+    #thermNeedle { position: absolute; top: -5px; width: 3px; height: 18px; background: #ffffff; border-radius: 2px; transform: translateX(-50%); display: none; transition: left 0.4s; }
+    #rangeHint { font-size: 0.8rem; color: #8888aa; margin-bottom: 1rem; }
+
+    .divider { border: none; border-top: 1px solid #2a2a45; margin: 1rem 0 0.75rem; }
+    .tape-label { font-size: 0.75rem; color: #8888aa; margin-bottom: 6px; }
+    .guess-tape { display: flex; flex-wrap: wrap; gap: 5px; min-height: 32px; }
+    .bubble { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+    .bub-low  { background: #1a2a44; color: #5599ff; border: 1px solid #2a3a66; }
+    .bub-high { background: #2a1f0a; color: #ffaa44; border: 1px solid #44320a; }
+    .bub-win  { background: #0a2a1a; color: #44cc88; border: 1px solid #0a4422; }
+    .bub-lose { background: #2a0a0a; color: #ff5555; border: 1px solid #440a0a; }
+
+    footer { text-align: center; margin-top: 1.5rem; font-size: 0.75rem; color: #44445a; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Number Guessing Game</h1>
+    <p class="subtitle">Guess the secret number between 1 and 100</p>
+
+    <div class="stats-grid">
+      <div class="statcard"><div class="statnum" id="sGuesses">0</div><div class="statlbl">Guesses</div></div>
+      <div class="statcard"><div class="statnum" id="sLeft">10</div><div class="statlbl">Left</div></div>
+      <div class="statcard"><div class="statnum" id="sWins">0</div><div class="statlbl">Wins</div></div>
+    </div>
+
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <p style="font-size:0.75rem; color:#8888aa; margin-bottom:6px;">Difficulty</p>
+          <div class="diff-group">
+            <button class="diff-btn" id="d-easy" onclick="setDiff('easy')">Easy</button>
+            <button class="diff-btn active" id="d-medium" onclick="setDiff('medium')">Medium</button>
+            <button class="diff-btn" id="d-hard" onclick="setDiff('hard')">Hard</button>
+          </div>
+        </div>
+        <button class="new-btn" onclick="newGame()">&#8635; New game</button>
+      </div>
+
+      <p class="input-hint">Your guess &nbsp;·&nbsp; <kbd>1</kbd> to <kbd>100</kbd> &nbsp;·&nbsp; press <kbd>Enter</kbd></p>
+      <div class="input-row">
+        <input class="guess-input" type="number" id="gi" min="1" max="100" placeholder="e.g. 50"
+          onkeydown="if(event.key==='Enter') submitGuess()" />
+        <button class="guess-btn" id="gbtn" onclick="submitGuess()">&#8594; Guess</button>
+      </div>
+
+      <div id="msgbox" style="color:#8888aa;">Press New Game to begin!</div>
+
+      <div class="therm-row">
+        <span class="therm-end">1</span>
+        <div class="therm-track">
+          <div id="thermFill" style="left:0; width:100%;"></div>
+          <div id="thermNeedle"></div>
+        </div>
+        <span class="therm-end">100</span>
+      </div>
+      <div id="rangeHint">Range: 1 – 100</div>
+
+      <hr class="divider" />
+
+      <p class="tape-label">Guess history</p>
+      <div class="guess-tape" id="tape">
+        <span style="font-size:0.8rem; color:#44445a;">Your guesses will appear here...</span>
+      </div>
+    </div>
+
+    <footer>SkillCraft Technology — Task 02 | Built with HTML, CSS &amp; JavaScript</footer>
+  </div>
+
+  <script>
+    let secret=0, attempts=0, maxTries=10, wins=0, over=false, lo=1, hi=100, diff='medium';
+    const cfg={easy:15,medium:10,hard:5};
+
+    function setDiff(d){
+      diff=d; maxTries=cfg[d];
+      document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById('d-'+d).classList.add('active');
+      newGame();
+    }
+
+    function newGame(){
+      secret=Math.floor(Math.random()*100)+1;
+      attempts=0; over=false; lo=1; hi=100;
+      document.getElementById('sGuesses').textContent=0;
+      document.getElementById('sLeft').textContent=maxTries;
+      document.getElementById('gi').value='';
+      document.getElementById('gi').disabled=false;
+      document.getElementById('gbtn').disabled=false;
+      document.getElementById('tape').innerHTML='<span style="font-size:0.8rem;color:#44445a;">Your guesses will appear here...</span>';
+      document.getElementById('thermNeedle').style.display='none';
+      document.getElementById('thermFill').style.left='0';
+      document.getElementById('thermFill').style.width='100%';
+      document.getElementById('rangeHint').textContent='Range: 1 – 100';
+      setMsg('Game on! Make your first guess.','neutral');
+    }
+
+    function submitGuess(){
+      if(over) return;
+      const inp=document.getElementById('gi');
+      const v=parseInt(inp.value);
+      if(isNaN(v)||v<1||v>100){setMsg('Please enter a valid number between 1 and 100.','warn');return;}
+      attempts++;
+      const left=maxTries-attempts;
+      document.getElementById('sGuesses').textContent=attempts;
+      document.getElementById('sLeft').textContent=left;
+
+      if(v===secret){
+        addBubble(v,'win','✓');
+        setMsg('You got it! The number was '+secret+'. Found in '+attempts+' guess'+(attempts>1?'es':'')+'!','win');
+        wins++; document.getElementById('sWins').textContent=wins;
+        over=true; disable(); updateTherm(lo,hi,v,true);
+      } else if(left===0){
+        addBubble(v,'lose',v<secret?'↑':'↓');
+        setMsg('Out of tries! The secret number was '+secret+'. Better luck next time!','lose');
+        over=true; disable();
+      } else if(v<secret){
+        lo=Math.max(lo,v+1);
+        addBubble(v,'low','↑');
+        setMsg(v+' is too low — go higher! ('+left+' tries left)','low');
+        updateTherm(lo,hi,v,false);
+      } else {
+        hi=Math.min(hi,v-1);
+        addBubble(v,'high','↓');
+        setMsg(v+' is too high — go lower! ('+left+' tries left)','high');
+        updateTherm(lo,hi,v,false);
+      }
+      inp.value=''; inp.focus();
+    }
+
+    function addBubble(v,type,icon){
+      const tape=document.getElementById('tape');
+      if(tape.querySelector('span[style]')) tape.innerHTML='';
+      const b=document.createElement('span');
+      b.className='bubble bub-'+type;
+      b.textContent=icon+' '+v;
+      tape.appendChild(b);
+    }
+
+    function setMsg(txt,type){
+      const el=document.getElementById('msgbox');
+      const c={low:'#5599ff',high:'#ffaa44',win:'#44cc88',lose:'#ff5555',neutral:'#8888aa',warn:'#ffaa44'};
+      el.style.color=c[type]||'#8888aa';
+      el.textContent=txt;
+    }
+
+    function updateTherm(l,h,guess,won){
+      const fill=document.getElementById('thermFill');
+      const needle=document.getElementById('thermNeedle');
+      const hint=document.getElementById('rangeHint');
+      const lPct=((l-1)/99)*100;
+      const wPct=((h-l)/99)*100;
+      fill.style.left=lPct+'%';
+      fill.style.width=Math.max(wPct,1)+'%';
+      const gPct=((guess-1)/99)*100;
+      needle.style.left=gPct+'%';
+      needle.style.display='block';
+      needle.style.background=won?'#44cc88':'#ffffff';
+      hint.textContent=won?'Found it at '+guess+'!':'Narrowed range: '+l+' – '+h;
+    }
+
+    function disable(){
+      document.getElementById('gi').disabled=true;
+      document.getElementById('gbtn').disabled=true;
+    }
+
+    newGame();
+  </script>
+</body>
+</html>
