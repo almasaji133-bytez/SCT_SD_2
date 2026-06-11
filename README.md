@@ -17,7 +17,7 @@ A fun, interactive web-based number guessing game where the program generates a 
 ---
 
 ## 🌐 Live Demo
-👉 [Click here to play the game](https://your-username.github.io/your-repo-name/number_guessing_game.html)
+👉 [Click here to play the game](https://almasaji133-bytez.github.io/SCT_SD_2/number_guessing_game.html)
 
 ---
 
