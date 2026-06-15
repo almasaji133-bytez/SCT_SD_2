@@ -77,4 +77,4 @@ Task-02-Number-Guessing-Game/
 
 **Organization:** SkillCraft Technology  
 **Task:** 02 — Number Guessing Game  
-**Intern:** [Your Name]
+**Intern:** Alma Saji
